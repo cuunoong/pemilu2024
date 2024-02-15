@@ -1,4 +1,4 @@
-import { child, get, ref, update } from "firebase/database";
+import { child, get, ref, remove, update } from "firebase/database";
 import db from ".";
 import { StateModel } from "../models/state.model";
 import { TPSModel } from "../models/tps.model";
@@ -18,6 +18,10 @@ class State {
     var snapshot = await get(this.getPath());
     if (snapshot.exists()) return snapshot.val() as StateModel;
     return null;
+  };
+
+  reset = async () => {
+    return remove(this.getPath());
   };
 
   setValue = async (props: { path: string; value: StateModel }) => {

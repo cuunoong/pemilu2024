@@ -4,6 +4,7 @@ import { TPSModel } from "./models/tps.model";
 import axiosRetry from "axios-retry";
 import state from "./db/state";
 import { ChartModel } from "./models/chart.model";
+import db from "./db";
 
 axiosRetry(axios, {
   retries: 10,
@@ -155,6 +156,8 @@ var main = async () => {
     count = 0;
     data = await getDataAllTK();
   }
+
+  console.log("FINISHED");
 };
 
 main();
