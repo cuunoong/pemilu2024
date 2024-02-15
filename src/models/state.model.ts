@@ -1,10 +1,13 @@
-import { TPSModel } from "./tps.model";
+import { ChartModel } from "./chart.model";
 
 export class StateModel {
   nama: string;
   id: number;
   kode: string;
   tingkat: number;
-  childs?: StateModel[];
-  tps?: TPSModel;
+  childs?: { [code: string]: boolean };
+  charts: {
+    valid: ChartModel;
+    kpu: ChartModel;
+  };
 }

@@ -4,11 +4,14 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node ./main.ts"
+    "start": "ts-node ./src/main.ts",
+    "test": " ts-node ./src/db/index.ts"
   },
   "dependencies": {
     "axios-retry": "^4.0.0",
-    "esm": "^3.2.25"
+    "dotenv": "^16.4.4",
+    "esm": "^3.2.25",
+    "firebase": "^10.8.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
