@@ -13,6 +13,9 @@ var count = 0;
 
 const BASE_URL = "https://sirekap-obj-data.kpu.go.id";
 
+var KPUChartFinal = new ChartModel();
+var validChartFinal = new ChartModel();
+
 var getDataTps = async (props: { code: string }): Promise<TPSModel> => {
   var { data } = await axios.get(
     `${BASE_URL}/pemilu/hhcw/ppwp/${props.code}.json`
@@ -88,7 +91,7 @@ var getDataAllTK = async (code = "0") => {
           value: dataTPS,
         });
 
-        console.log("FETCH");
+        console.log("FETCH \t ${dataValue?.nama}");
       }
 
       count++;
@@ -107,13 +110,29 @@ var getDataAllTK = async (code = "0") => {
         validChart.ganjar += dataTPS.chart?.[100027] || 0;
       }
 
+      KPUChartFinal.anis += dataTPS.chart?.[100025] || 0;
+      KPUChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
+      KPUChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
+
+      if (dataTPS.valid) {
+        validChartFinal.anis += dataTPS.chart?.[100025] || 0;
+        validChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
+        validChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
+      }
+
+      state.setChart({
+        path: "ALL",
+        value: {
+          kpu: KPUChartFinal,
+          valid: validChartFinal,
+        },
+      });
+
       if (Object.keys(childs).indexOf(current.kode) == -1) {
         childs[current.kode] = !dataTPS.valid!;
       }
     }
   }
-
-  console.log(childs);
 
   await state.setChilds({ path: code, value: childs });
 
@@ -133,6 +152,7 @@ var main = async () => {
   var data = await getDataAllTK();
 
   while (data?.invalid) {
+    count = 0;
     data = await getDataAllTK();
   }
 };
