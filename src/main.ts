@@ -130,7 +130,7 @@ var getDataAllTK = async (code = "0") => {
 };
 
 var main = async () => {
-  await getDataAllTK("11/1105");
+  await getDataAllTK();
 };
 
 main();
