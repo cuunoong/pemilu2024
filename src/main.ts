@@ -92,7 +92,7 @@ var getDataAllTK = async (code = "0") => {
           value: dataTPS,
         });
 
-        console.log("FETCH \t ${dataValue?.nama}");
+        console.log(`FETCH \t ${dataValue?.nama}`);
       }
 
       count++;
