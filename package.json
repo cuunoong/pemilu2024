@@ -1,0 +1,17 @@
+{
+  "name": "pemilu2024",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node ./main.ts"
+  },
+  "dependencies": {
+    "axios-retry": "^4.0.0",
+    "esm": "^3.2.25"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "axios": "^1.6.7"
+  }
+}
