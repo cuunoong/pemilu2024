@@ -130,7 +130,11 @@ var getDataAllTK = async (code = "0") => {
 };
 
 var main = async () => {
-  await getDataAllTK();
+  var data = await getDataAllTK();
+
+  while (data?.invalid) {
+    data = await getDataAllTK();
+  }
 };
 
 main();
