@@ -348,10 +348,7 @@ exports.onTPSCount5 = onDocumentWritten(
 
       console.log(`${docId}/CHILDS`);
       const coll = db.collection(`${docId}/CHILDS`);
-      const snapshot = await getAggregateFromServer(coll, {
-        invalid: sum("invalid"),
-        valid: sum("valid"),
-      });
+      const snapshot = coll.listDocuments();
 
       console.log(snapshot.data());
 
