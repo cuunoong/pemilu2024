@@ -11,6 +11,8 @@ class State {
   };
 
   getPath = (path = "") => {
+    if (path == "") return doc(db, "TPS/INDONESIA");
+
     var paths = path.replace(/\//g, "/CHILDREN/").split("/");
 
     return doc(db, "TPS/INDONESIA/CHILDREN", ...paths);
