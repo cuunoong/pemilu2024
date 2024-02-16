@@ -16,6 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 
-connectFirestoreEmulator(firestore, "localhost", 8080);
+if (process.env.NODE_ENV !== "production")
+  connectFirestoreEmulator(firestore, "localhost", 8080);
 
 export default firestore;

@@ -7,148 +7,114 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
+// const {
+//   onDocumentCreated,
+//   onDocumentUpdated,
+//   onDocumentWritten,
+// } = require("firebase-functions/v2/firestore");
+// const logger = require("firebase-functions/logger");
+// const functions = require("firebase-functions");
+
+// const {
+//   updateDoc,
+//   setDoc,
+//   collection,
+//   getAggregateFromServer,
+//   sum,
+// } = require("firebase/firestore");
+// const { Query } = require("firebase-admin/firestore");
 const {
-  onDocumentCreated,
-  onDocumentUpdated,
-  onDocumentWritten,
-} = require("firebase-functions/v2/firestore");
-const logger = require("firebase-functions/logger");
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
+  onTPSCheckCreated,
+  onTPSCheckDeleted,
+  onTPSCheckUpdated,
+  onTpsTk5Written,
+  onTpsTk4Written,
+  onTpsTk3Written,
+  onTpsTk2Written,
+  onTpsTk1Written,
+} = require("./tps");
+
 const {
-  updateDoc,
-  setDoc,
-  collection,
-  getAggregateFromServer,
-  sum,
-} = require("firebase/firestore");
-const { Query } = require("firebase-admin/firestore");
+  onTpsDataCountCreated,
+  onTpsDataCountDeleted,
+  onTpsDataCountUpdated,
+  onState5CountWritten,
+  onState4CountWritten,
+  onState3CountWritten,
+  onState2CountWritten,
+  onState1CountWritten,
+} = require("./count");
 
-admin.initializeApp();
+module.exports = {
+  //TPS
+  onTPSCheckCreated,
+  onTPSCheckDeleted,
+  onTPSCheckUpdated,
+  onTpsTk5Written,
+  onTpsTk4Written,
+  onTpsTk3Written,
+  onTpsTk2Written,
+  onTpsTk1Written,
 
-const db = admin.firestore();
+  // COUNT
+  onTpsDataCountCreated,
+  onTpsDataCountDeleted,
+  onTpsDataCountUpdated,
+  onState5CountWritten,
+  onState4CountWritten,
+  onState3CountWritten,
+  onState2CountWritten,
+  onState1CountWritten,
+};
 
-exports.onDataTPS = onDocumentWritten(
-  "/STATE/{state1}/CHILDS/{state2}/CHILDS/{state3}/CHILDS/{state4}/CHILDS/{state5}/CHILDS/TPS",
-  async (event) => {
-    try {
-      const [afterData, beforeData] = [
-        event.data.after.data(),
-        event.data.before.data(),
-      ];
+// exports.onDataTPS =
 
-      const { state1, state2, state3, state4, state5 } = event.params;
-
-      //   Create
-      if (beforeData == undefined) {
-        const { valid, chart } = afterData;
-
-        var docId = `INDONESIA/${state1}/CHILDS/${state2}/CHILDS/${state3}/CHILDS/${state4}/CHILDS/${state5}`;
-
-        var data = await db.doc(docId).get();
-        if (!data.exists)
-          return await db.doc(docId).update(
-            {
-              [valid ? "REAL" : "KPU"]: {
-                anies: !chart ? 0 : chart[100025] || 0,
-                prabowo: !chart ? 0 : chart[100026] || 0,
-                ganjar: !chart ? 0 : chart[100027] || 0,
-              },
-            },
-            { merge: true }
-          );
-
-        return await db.doc(docId).update(
-          {
-            [valid ? "REAL" : "KPU"]: {
-              anies: (!chart ? 0 : chart[100025] || 0) + validData.data().anies,
-              prabowo:
-                (!chart ? 0 : chart[100026] || 0) + validData.data().prabowo,
-              ganjar:
-                (!chart ? 0 : chart[100027] || 0) + validData.data().ganjar,
-            },
-          },
-          { merge: true }
-        );
-      }
-
-      // //   Delete
-      // if (afterData == undefined) {
-      //   var docId = `INDONESIA/${state1}/CHILDS/${state2}/CHILDS/${state3}/CHILDS/${state4}/CHILDS/${state5}`;
-
-      //   return await db.doc(docId).delete();
-      // }
-
-      // //   Update
-
-      // const { valid: beforeValid, chart: beforeChart } = beforeData;
-      // const { valid: afterValid, chart: afterChart } = afterData;
-
-      // var docId = `INDONESIA/${state1}/CHILDS/${state2}/CHILDS/${state3}/CHILDS/${state4}/CHILDS/${state5}`;
-
-      // if (afterValid == beforeValid && afterChart == beforeChart) {
-      //   return;
-      // }
-
-      // if (afterValid != beforeValid) {
-      //   await db.doc(`${docId}/${afterValid ? "INVALID" : "VALID"}`).delete();
-      // }
-
-      // await db.doc(`${docId}/${!afterValid ? "INVALID" : "VALID"}`).set({
-      //   anies: !afterChart ? 0 : afterChart[100025] || 0,
-      //   prabowo: !afterChart ? 0 : afterChart[100026] || 0,
-      //   ganjar: !afterChart ? 0 : afterChart[100027] || 0,
-      // });
-    } catch (error) {}
-  }
-);
-
-// const run = async ({ beforeData, afterData, data, docId, status }) => {
+// const run = async ({ beforeData, afterData, docId }) => {
 //   try {
 //     var doc = await db
 //       .collection(docId + "/DATA")
-//       .select("invalid", "valid")
+//       .select("KPU", "REAL")
 //       .get();
 
-//     // await db.doc(docId).update({ valid, invalid }, { merge: true });
+//     //     // await db.doc(docId).update({ valid, invalid }, { merge: true });
 
-//     // //   Created
-//     // if (beforeData == undefined) {
-//     //   if (!data.exists) return await db.doc(docId).set(afterData);
+//     //     // //   Created
+//     //     // if (beforeData == undefined) {
+//     //     //   if (!data.exists) return await db.doc(docId).set(afterData);
 
-//     //   return await db.doc(docId).set({
-//     //     anies: (afterData.anies || 0) + data.data()?.anies || 0,
-//     //     prabowo: (afterData.prabowo || 0) + data.data()?.prabowo || 0,
-//     //     ganjar: (afterData.ganjar || 0) + data.data()?.ganjar || 0,
-//     //   });
-//     // }
+//     //     //   return await db.doc(docId).set({
+//     //     //     anies: (afterData.anies || 0) + data.data()?.anies || 0,
+//     //     //     prabowo: (afterData.prabowo || 0) + data.data()?.prabowo || 0,
+//     //     //     ganjar: (afterData.ganjar || 0) + data.data()?.ganjar || 0,
+//     //     //   });
+//     //     // }
 
-//     // //   Deleted
-//     // if (afterData == undefined) {
-//     //   if (!data.exists) return;
+//     //     // //   Deleted
+//     //     // if (afterData == undefined) {
+//     //     //   if (!data.exists) return;
 
-//     //   return await db.doc(docId).set({
-//     //     anies: -1 * (beforeData.anies || 0) + data.data()?.anies || 0,
-//     //     prabowo: -1 * (beforeData.prabowo || 0) + data.data()?.prabowo || 0,
-//     //     ganjar: -1 * (beforeData.ganjar || 0) + data.data()?.ganjar || 0,
-//     //   });
-//     // }
+//     //     //   return await db.doc(docId).set({
+//     //     //     anies: -1 * (beforeData.anies || 0) + data.data()?.anies || 0,
+//     //     //     prabowo: -1 * (beforeData.prabowo || 0) + data.data()?.prabowo || 0,
+//     //     //     ganjar: -1 * (beforeData.ganjar || 0) + data.data()?.ganjar || 0,
+//     //     //   });
+//     //     // }
 
-//     // //   Updated
-//     // return await db.doc(docId).set({
-//     //   anies:
-//     //     -1 * (beforeData.anies || 0) +
-//     //       (afterData.anies || 0) +
-//     //       data.data()?.anies || 0,
-//     //   prabowo:
-//     //     -1 * (beforeData.prabowo || 0) +
-//     //       (afterData.prabowo || 0) +
-//     //       data.data()?.prabowo || 0,
-//     //   ganjar:
-//     //     -1 * (beforeData.ganjar || 0) +
-//     //       (afterData.ganjar || 0) +
-//     //       data.data()?.ganjar || 0,
-//     // });
+//     //     // //   Updated
+//     //     // return await db.doc(docId).set({
+//     //     //   anies:
+//     //     //     -1 * (beforeData.anies || 0) +
+//     //     //       (afterData.anies || 0) +
+//     //     //       data.data()?.anies || 0,
+//     //     //   prabowo:
+//     //     //     -1 * (beforeData.prabowo || 0) +
+//     //     //       (afterData.prabowo || 0) +
+//     //     //       data.data()?.prabowo || 0,
+//     //     //   ganjar:
+//     //     //     -1 * (beforeData.ganjar || 0) +
+//     //     //       (afterData.ganjar || 0) +
+//     //     //       data.data()?.ganjar || 0,
+//     //     // });
 //   } catch (error) {}
 // };
 

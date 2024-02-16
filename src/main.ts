@@ -31,10 +31,67 @@ var getDataTK = async (props: { code: string }): Promise<StateModel[]> => {
   return state as StateModel[];
 };
 
-var getDataAllTK = async (code = "0") => {
+const validate = async ({
+  code,
+  currentData,
+}: {
+  code: string;
+  currentData: StateModel;
+}) => {
+  var dataTPS = await getDataTps({ code });
+  dataTPS.validate();
+
+  var dataValue = currentData;
+
+  await state.setValue({
+    path: code,
+    value: {
+      ...dataValue,
+      fetched: true,
+    },
+  });
+
+  await state.setTps({
+    path: code,
+    value: dataTPS,
+  });
+
+  index++;
+
+  console.log(`${index}.\t ${dataValue.nama}`);
+};
+
+var getDataAllTK = async (prop = "0") => {
   var fetchData: StateModel[] = [];
 
-  fetchData = await getDataTK({ code });
+  const code = prop === "0" ? "" : prop;
+
+  const dbData = await state.getValue({ path: code });
+
+  if (dbData == null) {
+    fetchData = await getDataTK({ code: prop });
+  }
+
+  if (!dbData.fetched) {
+    fetchData = await getDataTK({ code: prop });
+  }
+
+  if (dbData.fetched) {
+    if (dbData.tingkat == 5) {
+      await validate({ code: prop, currentData: dbData });
+      return;
+    }
+
+    var children = dbData.ids || [];
+
+    while (children.length) {
+      var nextId = children.shift();
+
+      await getDataAllTK(`${code}/${nextId}`);
+    }
+
+    return;
+  }
 
   while (fetchData.length) {
     var currentData = fetchData.shift();
@@ -43,9 +100,12 @@ var getDataAllTK = async (code = "0") => {
 
     if (currentData.tingkat != 5) {
       const nextCode =
-        code === "0" ? currentData.kode : `${code}/${currentData.kode}`;
+        prop === "0" ? currentData.kode : `${code}/${currentData.kode}`;
 
-      console.log(`\t ${nextCode}`);
+      var tag = "#";
+      while (tag.length < currentData.tingkat) tag += tag;
+
+      console.log(`\n${tag} ${currentData.nama}`);
 
       await getDataAllTK(nextCode);
 
@@ -53,8 +113,7 @@ var getDataAllTK = async (code = "0") => {
         path: nextCode,
         value: {
           ...currentData,
-          valid: currentData.valid || 0,
-          invalid: currentData.invalid || 0,
+
           fetched: true,
         },
       });
@@ -62,38 +121,24 @@ var getDataAllTK = async (code = "0") => {
 
     if (currentData.tingkat == 5) {
       const currentCode = `${code}/${currentData.kode}`;
-
-      var dataTPS = await getDataTps({ code: currentCode });
-      dataTPS.validate();
-
-      var dataValue = currentData;
-
-      await state.setValue({
-        path: currentCode,
-        value: {
-          ...dataValue,
-          valid: dataValue.valid || 0,
-          invalid: dataValue.invalid || 0,
-          fetched: true,
-        },
-      });
-
-      await state.setTps({
-        path: code + "/" + currentData.kode,
-        value: dataTPS,
-      });
-
-      index++;
-
-      // return;
+      await validate({ code: currentCode, currentData });
     }
   }
 };
 
 var main = async () => {
-  var data = await getDataAllTK("11/1105/110507");
+  const path = "11/1105/110507";
 
-  console.log(`FINISHED ${index}`);
+  var iter = 1;
+
+  do {
+    console.log(`\n\n--------------\nITERASI KE-${iter++}\n--------------\n\n`);
+
+    index = 0;
+    await getDataAllTK(path);
+
+    var invalid = (await state.getValue({ path }))?.invalid || 0;
+  } while (invalid > 0);
 };
 
 main();
