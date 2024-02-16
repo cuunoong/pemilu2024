@@ -111,4 +111,18 @@ export class TPSModel {
     this.valid = data.valid;
     return this;
   }
+
+  toDoc() {
+    return {
+      administrasi: this.administrasi,
+      chart: this.chart,
+      fetched: this.fetched,
+      images: this.images,
+      psu: this.psu,
+      status_adm: this.status_adm,
+      status_suara: this.status_suara,
+      ts: this.ts,
+      valid: this.valid,
+    };
+  }
 }

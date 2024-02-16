@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -14,5 +14,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const firestore = getFirestore(app);
 
-export default getDatabase(app);
+connectFirestoreEmulator(firestore, "localhost", 8080);
+
+export default firestore;

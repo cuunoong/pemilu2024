@@ -8,6 +8,9 @@ import db from "./db";
 
 axiosRetry(axios, {
   retries: 10,
+  retryCondition(error) {
+    return true;
+  },
 });
 
 var count = 0;
@@ -35,127 +38,101 @@ var getDataTK = async (props: { code: string }): Promise<StateModel[]> => {
 
 var getDataAllTK = async (code = "0") => {
   var ret = true;
-  var childs: { [k: string]: boolean } = {};
-  var fetchData = await getDataTK({ code });
 
-  var KPUChart = new ChartModel();
-  var validChart = new ChartModel();
+  var fetchData: StateModel[] = [];
+
+  fetchData = await getDataTK({ code });
 
   while (fetchData.length) {
-    var current = fetchData.shift();
+    var currentData = fetchData.shift();
 
-    if (!current) return;
+    if (!currentData) return;
 
-    if (current.tingkat != 5) {
-      const nextCode = code === "0" ? current.kode : `${code}/${current.kode}`;
+    if (currentData.tingkat != 5) {
+      const nextCode =
+        code === "0" ? currentData.kode : `${code}/${currentData.kode}`;
 
       await state.setValue({
         path: nextCode,
-        value: current,
+        value: currentData,
       });
 
-      console.log(`\t\t ${nextCode}`);
+      console.log(`\t ${nextCode}`);
 
-      const chart = await getDataAllTK(nextCode);
-
-      validChart.anis += chart?.valid.anis || 0;
-      validChart.prabowo += chart?.valid.prabowo || 0;
-      validChart.ganjar += chart?.valid.ganjar || 0;
-
-      KPUChart.anis += chart?.kpu.anis || 0;
-      KPUChart.prabowo += chart?.kpu.prabowo || 0;
-      KPUChart.ganjar += chart?.kpu.ganjar || 0;
-
-      if (Object.keys(childs).indexOf(current.kode) == -1) {
-        childs[current.kode] = chart?.invalid!;
-      }
+      await getDataAllTK(nextCode);
     }
 
-    if (current.tingkat == 5) {
-      const currentCode = `${code}/${current.kode}`;
-      var dataTPS = await state.getTps(currentCode);
-      var dataValue = await state.getValue(currentCode);
+    if (currentData.tingkat == 5) {
+      const currentCode = `${code}/${currentData.kode}`;
+      // var dataTPS = await state.getTps(currentCode);
+      // var dataValue = await state.getValue(currentCode);
 
-      if (!dataTPS || !dataValue || !dataTPS.valid || !dataTPS.fetched) {
-        dataTPS = await getDataTps({ code: currentCode });
-        dataTPS.validate();
+      var dataTPS = await getDataTps({ code: currentCode });
+      dataTPS.validate();
 
-        dataValue = current;
+      var dataValue = currentData;
 
-        await state.setValue({
-          path: currentCode,
-          value: current,
-        });
+      await state.setValue({
+        path: currentCode,
+        value: dataValue,
+      });
 
-        await state.setTps({
-          path: code + "/" + current.kode,
-          value: dataTPS,
-        });
-
-        console.log(`FETCH \t ${dataValue?.nama}`);
-      }
-
-      count++;
-
-      console.log(`${count}.\t Loading ${dataValue?.nama}`);
+      await state.setTps({
+        path: code + "/" + currentData.kode,
+        value: dataTPS,
+      });
 
       ret = ret && (dataTPS.valid || false);
 
-      KPUChart.anis += dataTPS.chart?.[100025] || 0;
-      KPUChart.prabowo += dataTPS.chart?.[100026] || 0;
-      KPUChart.ganjar += dataTPS.chart?.[100027] || 0;
+      return;
 
-      if (dataTPS.valid) {
-        validChart.anis += dataTPS.chart?.[100025] || 0;
-        validChart.prabowo += dataTPS.chart?.[100026] || 0;
-        validChart.ganjar += dataTPS.chart?.[100027] || 0;
-      }
+      // count++;
 
-      KPUChartFinal.anis += dataTPS.chart?.[100025] || 0;
-      KPUChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
-      KPUChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
+      // console.log(`${count}.\t Loading ${dataValue?.nama}`);
 
-      if (dataTPS.valid) {
-        validChartFinal.anis += dataTPS.chart?.[100025] || 0;
-        validChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
-        validChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
-      }
+      // KPUChart.anis += dataTPS.chart?.[100025] || 0;
+      // KPUChart.prabowo += dataTPS.chart?.[100026] || 0;
+      // KPUChart.ganjar += dataTPS.chart?.[100027] || 0;
 
-      state.setChart({
-        path: "ALL",
-        value: {
-          kpu: KPUChartFinal,
-          valid: validChartFinal,
-        },
-      });
+      // if (dataTPS.valid) {
+      //   validChart.anis += dataTPS.chart?.[100025] || 0;
+      //   validChart.prabowo += dataTPS.chart?.[100026] || 0;
+      //   validChart.ganjar += dataTPS.chart?.[100027] || 0;
+      // }
 
-      if (Object.keys(childs).indexOf(current.kode) == -1) {
-        childs[current.kode] = !dataTPS.valid!;
-      }
+      // KPUChartFinal.anis += dataTPS.chart?.[100025] || 0;
+      // KPUChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
+      // KPUChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
+
+      // if (dataTPS.valid) {
+      //   validChartFinal.anis += dataTPS.chart?.[100025] || 0;
+      //   validChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
+      //   validChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
+      // }
+
+      // state.setChart({
+      //   path: "ALL",
+      //   value: {
+      //     kpu: KPUChartFinal,
+      //     valid: validChartFinal,
+      //   },
+      // });
+
+      // if (Object.keys(childs).indexOf(currentData.kode) == -1) {
+      //   childs[currentData.kode] = !dataTPS.valid!;
+      // }
     }
   }
-
-  await state.setChilds({ path: code, value: childs });
-
-  await state.setChart({
-    path: code,
-    value: { valid: validChart, kpu: KPUChart },
-  });
-
-  return {
-    kpu: KPUChart,
-    valid: validChart,
-    invalid: !ret,
-  };
 };
 
 var main = async () => {
-  var data = await getDataAllTK();
+  // await state.reset();
+  var data = await getDataAllTK("11/1105/110506");
 
-  while (data?.invalid) {
-    count = 0;
-    data = await getDataAllTK();
-  }
+  // while (data) {
+  //   count = 0;
+  //   data = await getDataAllTK();
+  // }
 
   console.log("FINISHED");
 };
