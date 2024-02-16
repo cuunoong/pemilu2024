@@ -70,13 +70,9 @@ var getDataAllTK = async (prop = "0") => {
 
   if (dbData == null) {
     fetchData = await getDataTK({ code: prop });
-  }
-
-  if (!dbData.fetched) {
+  } else if (!dbData.fetched) {
     fetchData = await getDataTK({ code: prop });
-  }
-
-  if (dbData.fetched) {
+  } else if (dbData.fetched) {
     if (dbData.tingkat == 5) {
       await validate({ code: prop, currentData: dbData });
       return;
