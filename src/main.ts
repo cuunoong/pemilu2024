@@ -7,9 +7,15 @@ import state from "./db/state";
 var index = 0;
 
 axiosRetry(axios, {
-  retries: 10,
+  retries: 100,
+  retryDelay(retryCount, error) {
+    return 3;
+  },
   retryCondition(error) {
     return true;
+  },
+  onRetry(retryCount, error, requestConfig) {
+    console.log("retry", error);
   },
 });
 
@@ -77,6 +83,11 @@ var getDataAllTK = async (prop = "0") => {
       await validate({ code: prop, currentData: dbData });
       return;
     }
+
+    var tag = "#";
+    while (tag.length < dbData.tingkat) tag += tag;
+
+    console.log(`\n${tag} ${dbData.nama}`);
 
     var children = dbData.ids || [];
 
