@@ -3,8 +3,8 @@ import { StateModel } from "./models/state.model";
 import { TPSModel } from "./models/tps.model";
 import axiosRetry from "axios-retry";
 import state from "./db/state";
-import { ChartModel } from "./models/chart.model";
-import db from "./db";
+
+var index = 0;
 
 axiosRetry(axios, {
   retries: 10,
@@ -13,12 +13,7 @@ axiosRetry(axios, {
   },
 });
 
-var count = 0;
-
 const BASE_URL = "https://sirekap-obj-data.kpu.go.id";
-
-var KPUChartFinal = new ChartModel();
-var validChartFinal = new ChartModel();
 
 var getDataTps = async (props: { code: string }): Promise<TPSModel> => {
   var { data } = await axios.get(
@@ -37,8 +32,6 @@ var getDataTK = async (props: { code: string }): Promise<StateModel[]> => {
 };
 
 var getDataAllTK = async (code = "0") => {
-  var ret = true;
-
   var fetchData: StateModel[] = [];
 
   fetchData = await getDataTK({ code });
@@ -52,20 +45,23 @@ var getDataAllTK = async (code = "0") => {
       const nextCode =
         code === "0" ? currentData.kode : `${code}/${currentData.kode}`;
 
-      await state.setValue({
-        path: nextCode,
-        value: currentData,
-      });
-
       console.log(`\t ${nextCode}`);
 
       await getDataAllTK(nextCode);
+
+      await state.setValue({
+        path: nextCode,
+        value: {
+          ...currentData,
+          valid: currentData.valid || 0,
+          invalid: currentData.invalid || 0,
+          fetched: true,
+        },
+      });
     }
 
     if (currentData.tingkat == 5) {
       const currentCode = `${code}/${currentData.kode}`;
-      // var dataTPS = await state.getTps(currentCode);
-      // var dataValue = await state.getValue(currentCode);
 
       var dataTPS = await getDataTps({ code: currentCode });
       dataTPS.validate();
@@ -74,7 +70,12 @@ var getDataAllTK = async (code = "0") => {
 
       await state.setValue({
         path: currentCode,
-        value: dataValue,
+        value: {
+          ...dataValue,
+          valid: dataValue.valid || 0,
+          invalid: dataValue.invalid || 0,
+          fetched: true,
+        },
       });
 
       await state.setTps({
@@ -82,59 +83,17 @@ var getDataAllTK = async (code = "0") => {
         value: dataTPS,
       });
 
-      ret = ret && (dataTPS.valid || false);
+      index++;
 
-      return;
-
-      // count++;
-
-      // console.log(`${count}.\t Loading ${dataValue?.nama}`);
-
-      // KPUChart.anis += dataTPS.chart?.[100025] || 0;
-      // KPUChart.prabowo += dataTPS.chart?.[100026] || 0;
-      // KPUChart.ganjar += dataTPS.chart?.[100027] || 0;
-
-      // if (dataTPS.valid) {
-      //   validChart.anis += dataTPS.chart?.[100025] || 0;
-      //   validChart.prabowo += dataTPS.chart?.[100026] || 0;
-      //   validChart.ganjar += dataTPS.chart?.[100027] || 0;
-      // }
-
-      // KPUChartFinal.anis += dataTPS.chart?.[100025] || 0;
-      // KPUChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
-      // KPUChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
-
-      // if (dataTPS.valid) {
-      //   validChartFinal.anis += dataTPS.chart?.[100025] || 0;
-      //   validChartFinal.prabowo += dataTPS.chart?.[100026] || 0;
-      //   validChartFinal.ganjar += dataTPS.chart?.[100027] || 0;
-      // }
-
-      // state.setChart({
-      //   path: "ALL",
-      //   value: {
-      //     kpu: KPUChartFinal,
-      //     valid: validChartFinal,
-      //   },
-      // });
-
-      // if (Object.keys(childs).indexOf(currentData.kode) == -1) {
-      //   childs[currentData.kode] = !dataTPS.valid!;
-      // }
+      // return;
     }
   }
 };
 
 var main = async () => {
-  // await state.reset();
-  var data = await getDataAllTK("11/1105/110506");
+  var data = await getDataAllTK("11/1105/110507");
 
-  // while (data) {
-  //   count = 0;
-  //   data = await getDataAllTK();
-  // }
-
-  console.log("FINISHED");
+  console.log(`FINISHED ${index}`);
 };
 
 main();

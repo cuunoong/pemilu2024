@@ -10,4 +10,7 @@ export class StateModel {
     valid: ChartModel;
     kpu: ChartModel;
   };
+  valid: number;
+  invalid: number;
+  fetched: boolean;
 }
