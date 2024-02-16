@@ -127,7 +127,7 @@ var getDataAllTK = async (prop = "0") => {
 };
 
 var main = async () => {
-  const path = process.env.PATH;
+  const path = process.env.PATH || "";
 
   var iter = 1;
 
